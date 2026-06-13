@@ -72,8 +72,9 @@ class CCCCoordinator(DataUpdateCoordinator[CCCData]):
         return DeviceInfo(
             identifiers={(DOMAIN, str(self.rating_unit_id))},
             name=self.address,
-            manufacturer="Christchurch City Council",
-            model="Kerbside collection",
+            # Unofficial integration; do not imply this is a council product.
+            manufacturer="ha-ccc-waste (unofficial)",
+            model="Christchurch kerbside collection",
         )
 
     async def _async_update_data(self) -> CCCData:

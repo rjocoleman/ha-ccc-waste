@@ -6,6 +6,14 @@ It talks to the same credential-free endpoints the council website uses. No API 
 
 This integration only supports Christchurch. That is the point. It is small, focused, and easy to keep working.
 
+## Disclaimer
+
+> **This is an unofficial, community-built integration. It is not made by, affiliated with, endorsed by, or supported by Christchurch City Council.**
+>
+> It reads from publicly available pages on `ccc.govt.nz`. Those are not a documented API and can change or break at any time without notice.
+>
+> The collection dates it shows come with **no warranty and no guarantee of accuracy**. Do not rely on it for anything that matters - always confirm your actual collection day with the council. You use this entirely at your own risk.
+
 ## What you get
 
 - A device per property, with a sensor for each bin material present at your address.

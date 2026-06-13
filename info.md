@@ -10,3 +10,5 @@ Next bin collection dates for any Christchurch address, straight from the counci
 Add it, type part of your address, pick the match, done.
 
 See the [README](https://github.com/rjocoleman/ha-ccc-waste) for dashboard (Mushroom) and automation examples.
+
+**Unofficial.** Not affiliated with or endorsed by Christchurch City Council. Reads publicly available council web pages; no warranty or guarantee of accuracy. Always confirm your collection day with the council.
