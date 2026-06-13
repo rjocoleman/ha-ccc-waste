@@ -1,0 +1,13 @@
+{
+  "domain": "ccc_waste",
+  "name": "Christchurch City Council Kerbside",
+  "codeowners": ["@rjocoleman"],
+  "config_flow": true,
+  "documentation": "https://github.com/rjocoleman/ha-ccc-waste",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/rjocoleman/ha-ccc-waste/issues",
+  "quality_scale": "silver",
+  "requirements": [],
+  "version": "0.1.0"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "192837",
+  "address": "110 Montreal Street Sydenham Christchurch",
+  "bins": {
+    "containers": "this should be a list",
+    "collections": [
+      { "material": "Garbage", "pick_up_group": "204" }
+    ]
+  }
+}

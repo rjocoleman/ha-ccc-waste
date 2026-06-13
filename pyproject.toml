@@ -1,0 +1,150 @@
+[project]
+name = "ha-ccc-waste"
+version = "0.1.0"
+description = "Home Assistant integration for Christchurch City Council kerbside collection"
+readme = "README.md"
+requires-python = ">=3.14.2"
+license = "MIT"
+authors = [{ name = "Robert Coleman" }]
+# No runtime dependencies: Home Assistant provides aiohttp via async_get_clientsession.
+dependencies = []
+
+[dependency-groups]
+dev = [
+  "ruff>=0.15",
+  "mypy>=2.1",
+]
+test = [
+  "pytest>=8.3",
+  "pytest-asyncio>=0.25",
+  "pytest-cov>=6.0",
+  "pytest-homeassistant-custom-component==0.13.339",
+  "aioresponses>=0.7.8",
+  "freezegun>=1.5",
+]
+
+[tool.uv]
+# This repo is a Home Assistant custom component loaded by path, not an installable package.
+package = false
+
+[tool.ruff]
+required-version = ">=0.14"
+target-version = "py314"
+line-length = 88
+src = ["custom_components", "tests"]
+
+[tool.ruff.lint]
+# Mirrors the Home Assistant core rule set as the baseline, then turns it up.
+select = [
+  "A",      # flake8-builtins
+  "ASYNC",  # flake8-async
+  "B",      # flake8-bugbear
+  "BLE",    # flake8-blind-except
+  "C4",     # flake8-comprehensions
+  "C90",    # mccabe complexity
+  "D",      # pydocstyle
+  "DTZ",    # flake8-datetimez
+  "E",      # pycodestyle errors
+  "EM",     # flake8-errmsg
+  "EXE",    # flake8-executable
+  "F",      # pyflakes
+  "FA",     # flake8-future-annotations
+  "FLY",    # flynt
+  "FURB",   # refurb
+  "G",      # flake8-logging-format
+  "I",      # isort
+  "ICN",    # flake8-import-conventions
+  "INP",    # flake8-no-pep420
+  "ISC",    # flake8-implicit-str-concat
+  "LOG",    # flake8-logging
+  "N",      # pep8-naming
+  "PERF",   # perflint
+  "PGH",    # pygrep-hooks
+  "PIE",    # flake8-pie
+  "PL",     # pylint
+  "PT",     # flake8-pytest-style
+  "PTH",    # flake8-use-pathlib
+  "RET",    # flake8-return
+  "RSE",    # flake8-raise
+  "RUF",    # ruff-specific
+  "S",      # flake8-bandit
+  "SIM",    # flake8-simplify
+  "SLF",    # flake8-self
+  "SLOT",   # flake8-slots
+  "T20",    # flake8-print
+  "TC",     # flake8-type-checking
+  "TID",    # flake8-tidy-imports
+  "TRY",    # tryceratops
+  "UP",     # pyupgrade
+  "W",      # pycodestyle warnings
+]
+ignore = [
+  "D203",   # incompatible with D211
+  "D213",   # incompatible with D212
+  "E501",   # the formatter handles code width; long URL/JSON literals are exempt
+  "ISC001", # conflicts with the formatter
+  "N818",   # CCC*NotFound names are deliberate, mirroring the domain
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+  "D",       # tests document themselves through their names
+  "S101",    # asserts are the point of tests
+  "PLR2004", # magic values are fine in tests
+  "SLF001",  # tests reach into internals
+]
+
+[tool.ruff.lint.flake8-type-checking]
+runtime-evaluated-base-classes = ["homeassistant.helpers.entity.Entity"]
+
+[tool.ruff.lint.flake8-import-conventions.extend-aliases]
+"homeassistant.helpers.config_validation" = "cv"
+"homeassistant.helpers.device_registry" = "dr"
+"homeassistant.helpers.entity_registry" = "er"
+
+[tool.ruff.lint.isort]
+force-sort-within-sections = true
+combine-as-imports = true
+known-first-party = ["custom_components.ccc_waste"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 12
+
+[tool.ruff.lint.pydocstyle]
+convention = "pep257"
+
+[tool.mypy]
+python_version = "3.14"
+strict = true
+warn_unreachable = true
+enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
+plugins = []
+follow_imports = "normal"
+local_partial_types = true
+no_implicit_reexport = true
+
+[[tool.mypy.overrides]]
+# Home Assistant ships partial type information; do not let its gaps fail our
+# strict run. It also re-exports many helpers (e.g. DeviceInfo) without listing
+# them in __all__, so allow implicit re-export from its modules.
+module = "homeassistant.*"
+ignore_missing_imports = true
+implicit_reexport = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_mode = "auto"
+addopts = "-ra --strict-markers --strict-config"
+
+[tool.coverage.run]
+branch = true
+source = ["custom_components/ccc_waste"]
+
+[tool.coverage.report]
+show_missing = true
+exclude_also = [
+  "if TYPE_CHECKING:",
+  "raise NotImplementedError",
+  "@overload",
+]

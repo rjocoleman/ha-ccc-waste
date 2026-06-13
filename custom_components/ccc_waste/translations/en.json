@@ -1,0 +1,49 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Christchurch City Council Kerbside",
+        "description": "Enter part of your street address and we will look it up against the council's address service.",
+        "data": {
+          "address": "Address"
+        },
+        "data_description": {
+          "address": "For example, 110 Montreal Street"
+        }
+      },
+      "select": {
+        "title": "Select your address",
+        "description": "Choose the matching property.",
+        "data": {
+          "address": "Address"
+        }
+      },
+      "reconfigure": {
+        "title": "Change address",
+        "description": "Enter part of the new street address.",
+        "data": {
+          "address": "Address"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not reach the Christchurch City Council service. Try again shortly.",
+      "address_not_found": "No matching address was found. Try a shorter or different part of the address."
+    },
+    "abort": {
+      "already_configured": "This address is already set up.",
+      "reconfigure_successful": "The address was updated.",
+      "unknown": "Something went wrong. Please start again."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "garbage": { "name": "Rubbish" },
+      "recycle": { "name": "Recycling" },
+      "organic": { "name": "Organic" }
+    },
+    "calendar": {
+      "collections": { "name": "Collections" }
+    }
+  }
+}

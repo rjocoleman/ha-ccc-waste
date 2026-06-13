@@ -1,0 +1,97 @@
+# Home Assistant Integration Quality Scale checklist.
+# Target tier: Silver. Bronze and Silver rules are all done or exempt.
+rules:
+  # --- Bronze ---
+  action-setup:
+    status: exempt
+    comment: The integration registers no custom services.
+  appropriate-polling: done
+  brands:
+    status: exempt
+    comment: >-
+      Distributed as a HACS custom repository, not the HACS default store, so a
+      home-assistant/brands submission is not required. Local brand images may be
+      added later if the integration is ever submitted to the default store.
+  common-modules: done
+  config-flow-test-coverage: done
+  config-flow: done
+  dependency-transparency: done
+  docs-actions:
+    status: exempt
+    comment: The integration registers no custom services.
+  docs-high-level-description: done
+  docs-installation-instructions: done
+  docs-removal-instructions: done
+  entity-event-setup:
+    status: exempt
+    comment: Entities subscribe only to the coordinator; no external events.
+  entity-unique-id: done
+  has-entity-name: done
+  runtime-data: done
+  test-before-configure: done
+  test-before-setup: done
+  unique-config-entry: done
+
+  # --- Silver ---
+  action-exceptions:
+    status: exempt
+    comment: The integration registers no custom services.
+  config-entry-unloading: done
+  docs-configuration-parameters: done
+  docs-installation-parameters: done
+  entity-unavailable: done
+  integration-owner: done
+  log-when-unavailable: done
+  parallel-updates: done
+  reauthentication-flow:
+    status: exempt
+    comment: The CCC endpoints take no credentials, so there is nothing to re-auth.
+  test-coverage: done
+
+  # --- Gold ---
+  devices: done
+  diagnostics: done
+  discovery:
+    status: exempt
+    comment: The address is entered manually; there is nothing to discover.
+  discovery-update-info:
+    status: exempt
+    comment: No discovery, so no network info to update.
+  docs-data-update: done
+  docs-examples: done
+  docs-known-limitations: done
+  docs-supported-devices:
+    status: exempt
+    comment: This is a service, not a device integration.
+  docs-supported-functions: done
+  docs-troubleshooting: done
+  docs-use-cases: done
+  dynamic-devices:
+    status: exempt
+    comment: A config entry maps to exactly one property device.
+  entity-category:
+    status: exempt
+    comment: Collection sensors are primary state, not configuration/diagnostic.
+  entity-device-class: done
+  entity-disabled-by-default:
+    status: exempt
+    comment: Every entity is useful; none should be disabled by default.
+  entity-translations: done
+  exception-translations:
+    status: todo
+    comment: Config-flow errors are translated; coordinator exceptions are not yet.
+  icon-translations:
+    status: exempt
+    comment: Per-material icons are set directly; there is no state-based icon logic.
+  reconfiguration-flow: done
+  repair-issues:
+    status: exempt
+    comment: Failures surface through standard availability and setup errors.
+  stale-devices:
+    status: exempt
+    comment: A config entry maps to exactly one property device.
+
+  # --- Platinum ---
+  async-dependency: done
+  inject-websession: done
+  strict-typing: done

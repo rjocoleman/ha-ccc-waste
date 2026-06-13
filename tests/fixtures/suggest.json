@@ -1,0 +1,32 @@
+{
+  "0": {
+    "StreetAddressID": 230994,
+    "FullStreetAddress": "110 Montreal Street, Sydenham, Christchurch 8023",
+    "RatingUnitID": 192837,
+    "Geometry": {
+      "coordinates": [1570987.41, 5177803.62],
+      "crs": { "properties": { "name": "urn:ogc:def:crs:EPSG::2193" }, "type": "Name" },
+      "type": "Point"
+    }
+  },
+  "1": {
+    "StreetAddressID": 230995,
+    "FullStreetAddress": "112 Montreal Street, Sydenham, Christchurch 8023",
+    "RatingUnitID": 192838,
+    "Geometry": {
+      "coordinates": [1570985.11, 5177810.04],
+      "crs": { "properties": { "name": "urn:ogc:def:crs:EPSG::2193" }, "type": "Name" },
+      "type": "Point"
+    }
+  },
+  "2": {
+    "StreetAddressID": 230996,
+    "FullStreetAddress": "110a Montreal Street, Sydenham, Christchurch 8023",
+    "RatingUnitID": 192839,
+    "Geometry": {
+      "coordinates": [1570990.02, 5177799.88],
+      "crs": { "properties": { "name": "urn:ogc:def:crs:EPSG::2193" }, "type": "Name" },
+      "type": "Point"
+    }
+  }
+}

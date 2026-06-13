@@ -1,0 +1,14 @@
+{
+  "id": "192837",
+  "address": "110 Montreal Street Sydenham Christchurch",
+  "latitude": -43.54612,
+  "longitude": 172.63298,
+  "bins": {
+    "containers": [],
+    "routes": [],
+    "collections": [
+      { "next_planned_date": "2026-06-16", "next_planned_date_app": "2026-06-16", "material": "Garbage", "pick_up_group": "Daily", "out_of_date": "False" },
+      { "next_planned_date": "2026-06-16", "next_planned_date_app": "2026-06-16", "material": "Recycle", "pick_up_group": "Not Collected", "out_of_date": "False" }
+    ]
+  }
+}

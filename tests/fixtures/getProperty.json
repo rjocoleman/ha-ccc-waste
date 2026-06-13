@@ -1,0 +1,26 @@
+{
+  "id": "192837",
+  "address": "110 Montreal Street Sydenham Christchurch",
+  "latitude": -43.54612,
+  "longitude": 172.63298,
+  "bins": {
+    "containers": [
+      { "container_type": "140L WB", "material": "Garbage", "serial_no": "C0192837-G", "tag": "RFID-G-0001", "status": "Active" },
+      { "container_type": "240L WB", "material": "Recycle", "serial_no": "C0192837-R", "tag": "RFID-R-0001", "status": "Active" },
+      { "container_type": "80L WB", "material": "Organic", "serial_no": "C0192837-O", "tag": "RFID-O-0001", "status": "Active" }
+    ],
+    "routes": [
+      { "material": "Garbage", "day_of_week": "Tuesday", "customer_group": "WK1 TUE" },
+      { "material": "Recycle", "day_of_week": "Tuesday", "customer_group": "WK1 TUE" },
+      { "material": "Organic", "day_of_week": "Tuesday", "customer_group": "WK1 TUE" }
+    ],
+    "collections": [
+      { "next_planned_date": "2026-06-10", "next_planned_date_app": "2026-06-23", "material": "Garbage", "pick_up_group": "204", "out_of_date": "False" },
+      { "next_planned_date": "2026-05-12", "next_planned_date_app": "2026-05-12", "material": "Recycle", "pick_up_group": "104", "out_of_date": "True" },
+      { "next_planned_date": "2026-05-19", "next_planned_date_app": "2026-05-19", "material": "Organic", "pick_up_group": "305", "out_of_date": "True" },
+      { "next_planned_date": "2026-01-06", "next_planned_date_app": "2026-01-06", "material": "Recycle", "pick_up_group": "104", "out_of_date": "True" },
+      { "next_planned_date": "2026-06-16", "next_planned_date_app": "2026-06-16", "material": "Garbage", "pick_up_group": "Daily", "out_of_date": "False" },
+      { "next_planned_date": "2026-06-16", "next_planned_date_app": "2026-06-16", "material": "Recycle", "pick_up_group": "Not Collected", "out_of_date": "False" }
+    ]
+  }
+}
