@@ -19,7 +19,13 @@ This integration only supports Christchurch. That is the point. It is small, foc
 
 ## Installing through HACS
 
-This is a custom repository. Until it is in the HACS default list, add it manually:
+This is a custom repository. The quickest way is the button below, which opens HACS on your Home Assistant with this repo pre-filled:
+
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=rjocoleman&repository=ha-ccc-waste&category=integration)
+
+Then download it and restart Home Assistant.
+
+Or add it by hand:
 
 1. In Home Assistant, open HACS.
 2. Open the three-dot menu, choose **Custom repositories**.
