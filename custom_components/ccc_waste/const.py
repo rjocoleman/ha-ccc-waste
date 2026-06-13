@@ -46,7 +46,7 @@ MATERIAL_LABELS: Final = {
 }
 
 ATTR_DAYS_UNTIL: Final = "days_until"
-ATTR_BIN_TYPE: Final = "bin_type"
+ATTR_BINS: Final = "bins"
 ATTR_COLLECTION_DAY: Final = "collection_day"
 ATTR_TEMPORARY_CHANGE: Final = "temporary_change"
 ATTR_ORIGINAL_DATE: Final = "original_date"

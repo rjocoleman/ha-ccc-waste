@@ -33,8 +33,8 @@ async def test_setup_and_unload(
         await hass.async_block_till_done()
 
     assert mock_entry.state is ConfigEntryState.LOADED
-    # Three material sensors plus one calendar.
-    assert len(hass.states.async_entity_ids("sensor")) == 3
+    # Three material sensors + next-collection summary, plus one calendar.
+    assert len(hass.states.async_entity_ids("sensor")) == 4
     assert len(hass.states.async_entity_ids("calendar")) == 1
 
     assert await hass.config_entries.async_unload(mock_entry.entry_id)

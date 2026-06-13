@@ -10,8 +10,8 @@ rules:
     status: exempt
     comment: >-
       Distributed as a HACS custom repository, not the HACS default store, so a
-      home-assistant/brands submission is not required. Local brand images may be
-      added later if the integration is ever submitted to the default store.
+      home-assistant/brands submission is not required. Brand images are shipped
+      locally under brand/ (supported from HA 2026.3) and override the CDN.
   common-modules: done
   config-flow-test-coverage: done
   config-flow: done

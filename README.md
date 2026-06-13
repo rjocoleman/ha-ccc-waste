@@ -15,7 +15,8 @@ This integration only supports Christchurch. That is the point. It is small, foc
   - `temporary_change` - true when a public holiday has shifted the date
   - `original_date` - the pre-shift date when `temporary_change` is true
   - `container_type` - the bin size, e.g. 140L WB
-- A calendar entity listing upcoming collections as all-day events, so you can use native calendar triggers.
+- A **Next collection** sensor: the soonest date across all bins, with a `bins` attribute listing which ones go out that day. Handy for a single at-a-glance card.
+- A **Collection calendar** entity listing upcoming collections as all-day events, for native calendar triggers and the calendar dashboard. Like every Home Assistant calendar, its own state is just `on`/`off` (on only while a collection event is active), so use the sensors above for at-a-glance display.
 
 ## Installing through HACS
 

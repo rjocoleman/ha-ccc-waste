@@ -11,7 +11,8 @@ from freezegun import freeze_time
 
 from custom_components.ccc_waste.const import TIMEZONE
 from custom_components.ccc_waste.coordinator import CCCData
-from custom_components.ccc_waste.sensor import CCCBinSensor
+from custom_components.ccc_waste.models import CollectionResult
+from custom_components.ccc_waste.sensor import CCCBinSensor, CCCNextCollectionSensor
 from tests.conftest import mock_ccc_endpoints
 
 if TYPE_CHECKING:
@@ -21,9 +22,11 @@ if TYPE_CHECKING:
 FROZEN_NOW = "2026-06-13 00:00:00"
 _AUCKLAND = ZoneInfo(TIMEZONE)
 
-RUBBISH = "sensor.110_montreal_street_sydenham_christchurch_8023_rubbish"
-ORGANIC = "sensor.110_montreal_street_sydenham_christchurch_8023_organic"
-CALENDAR = "calendar.110_montreal_street_sydenham_christchurch_8023_collections"
+_DEVICE = "110_montreal_street_sydenham_christchurch_8023"
+RUBBISH = f"sensor.{_DEVICE}_rubbish"
+ORGANIC = f"sensor.{_DEVICE}_organic"
+NEXT = f"sensor.{_DEVICE}_next_collection"
+CALENDAR = f"calendar.{_DEVICE}_collection_calendar"
 
 
 async def _setup(hass: HomeAssistant, entry: MockConfigEntry) -> None:
@@ -65,6 +68,58 @@ async def test_weekly_sensor_rolls_to_nearest(
     assert datetime.fromisoformat(state.state) == datetime(
         2026, 6, 16, tzinfo=_AUCKLAND
     )
+
+
+@freeze_time(FROZEN_NOW)
+async def test_next_collection_summary(
+    hass: HomeAssistant, mock_entry: MockConfigEntry
+) -> None:
+    """The summary sensor reports the soonest date and every bin sharing it."""
+    await _setup(hass, mock_entry)
+
+    state = hass.states.get(NEXT)
+    assert state is not None
+    assert datetime.fromisoformat(state.state) == datetime(
+        2026, 6, 16, tzinfo=_AUCKLAND
+    )
+    assert state.attributes["days_until"] == 3
+    # In this fixture Organic (16 Jun) is soonest; Recycling/Rubbish are 23 Jun.
+    assert state.attributes["bins"] == ["Organic"]
+    assert state.attributes["collection_day"] == "Tuesday"
+
+
+@freeze_time(FROZEN_NOW)
+async def test_next_collection_groups_same_day(
+    hass: HomeAssistant, mock_entry: MockConfigEntry
+) -> None:
+    """When several bins share the soonest date, all are listed."""
+    await _setup(hass, mock_entry)
+    coordinator = mock_entry.runtime_data
+    data = coordinator.data
+    coordinator.async_set_updated_data(
+        CCCData(
+            rating_unit_id=data.rating_unit_id,
+            address=data.address,
+            latitude=data.latitude,
+            longitude=data.longitude,
+            collections={
+                "Organic": CollectionResult(
+                    "Organic", date(2026, 6, 16), False, None, "Tuesday", "80L WB"
+                ),
+                "Recycle": CollectionResult(
+                    "Recycle", date(2026, 6, 16), False, None, "Tuesday", "240L WB"
+                ),
+                "Garbage": CollectionResult(
+                    "Garbage", date(2026, 6, 23), False, None, "Tuesday", "140L WB"
+                ),
+            },
+        )
+    )
+    await hass.async_block_till_done()
+
+    state = hass.states.get(NEXT)
+    assert state is not None
+    assert state.attributes["bins"] == ["Organic", "Recycling"]
 
 
 @freeze_time(FROZEN_NOW)
@@ -154,6 +209,24 @@ async def test_sensor_properties_none_for_absent_material(
     await _setup(hass, mock_entry)
     sensor = CCCBinSensor(mock_entry.runtime_data, "Nonexistent")
 
+    assert sensor.native_value is None
+    assert sensor.extra_state_attributes is None
+    assert sensor.available is False
+
+
+@freeze_time(FROZEN_NOW)
+async def test_next_collection_unavailable_when_empty(
+    hass: HomeAssistant, mock_entry: MockConfigEntry
+) -> None:
+    """With no collections, the summary sensor reports nothing and is unavailable."""
+    mock_entry.add_to_hass(hass)
+    with aioresponses() as mock:
+        mock_ccc_endpoints(mock, property_fixture="getProperty_all_excluded.json")
+        assert await hass.config_entries.async_setup(mock_entry.entry_id)
+        await hass.async_block_till_done()
+
+    sensor = CCCNextCollectionSensor(mock_entry.runtime_data)
+    assert sensor._soonest == []
     assert sensor.native_value is None
     assert sensor.extra_state_attributes is None
     assert sensor.available is False

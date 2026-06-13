@@ -7,10 +7,9 @@ from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
 from homeassistant.components.calendar import CalendarEntity, CalendarEvent
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, MATERIAL_LABELS, TIMEZONE, WEEKLY_MATERIALS
+from .const import MATERIAL_LABELS, TIMEZONE, WEEKLY_MATERIALS
 
 if TYPE_CHECKING:
     from datetime import date, datetime
@@ -45,12 +44,7 @@ class CCCCollectionCalendar(CoordinatorEntity["CCCCoordinator"], CalendarEntity)
         """Bind the calendar to the coordinator."""
         super().__init__(coordinator)
         self._attr_unique_id = f"{coordinator.rating_unit_id}_collections"
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, str(coordinator.rating_unit_id))},
-            name=coordinator.address,
-            manufacturer="Christchurch City Council",
-            model="Kerbside collection",
-        )
+        self._attr_device_info = coordinator.device_info
 
     @property
     def event(self) -> CalendarEvent | None:

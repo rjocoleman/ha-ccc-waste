@@ -10,6 +10,7 @@ from zoneinfo import ZoneInfo
 
 from homeassistant.exceptions import ConfigEntryError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
 
@@ -64,6 +65,16 @@ class CCCCoordinator(DataUpdateCoordinator[CCCData]):
         self._client = CCCApiClient(async_get_clientsession(hass))
         self.rating_unit_id: int = entry.data[CONF_RATING_UNIT_ID]
         self.address: str = entry.data[CONF_ADDRESS]
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """The single device that groups this property's entities."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, str(self.rating_unit_id))},
+            name=self.address,
+            manufacturer="Christchurch City Council",
+            model="Kerbside collection",
+        )
 
     async def _async_update_data(self) -> CCCData:
         """Fetch the property and overrides, then compute collection dates."""

@@ -40,10 +40,11 @@
     "sensor": {
       "garbage": { "name": "Rubbish" },
       "recycle": { "name": "Recycling" },
-      "organic": { "name": "Organic" }
+      "organic": { "name": "Organic" },
+      "next_collection": { "name": "Next collection" }
     },
     "calendar": {
-      "collections": { "name": "Collections" }
+      "collections": { "name": "Collection calendar" }
     }
   }
 }
