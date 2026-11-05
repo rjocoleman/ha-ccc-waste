@@ -16,14 +16,21 @@ from homeassistant.helpers.selector import (
     SelectSelectorConfig,
     SelectSelectorMode,
 )
-import voluptuous as vol
 
 from .api import CCCApiClient
 from .const import CONF_ADDRESS, CONF_RATING_UNIT_ID, DOMAIN
 from .exceptions import CCCAddressNotFound, CCCError
 
 if TYPE_CHECKING:
+    # HA 2026.9+ validates with probatio and aliases voluptuous to it at
+    # startup, while older releases ship voluptuous itself. Type-check against
+    # probatio, import voluptuous at runtime so both work.
+    # https://contributors.home-assistant.io/blog/2026/09/30/probatio-validation-engine
+    import probatio as vol
+
     from .models import CCCAddress
+else:
+    import voluptuous as vol
 
 _USER_SCHEMA = vol.Schema({vol.Required(CONF_ADDRESS): str})
 

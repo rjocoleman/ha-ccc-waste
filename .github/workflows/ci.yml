@@ -48,8 +48,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - ha: "2026.6.3"
-            phacc: "0.13.339"
+          - ha: "2026.10.4"
+            phacc: "0.13.375"
           - ha: "2026.5.1"
             phacc: "0.13.330"
     steps:
