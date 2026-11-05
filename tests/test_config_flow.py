@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-import re
 from typing import TYPE_CHECKING
 
 import aiohttp
-from aioresponses import aioresponses
 from homeassistant.config_entries import SOURCE_USER
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -23,8 +21,9 @@ from tests.conftest import load_fixture
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
-
-SUGGEST_PATTERN = re.compile(rf"{re.escape(CCC_SUGGEST_URL)}\?.*")
+    from pytest_homeassistant_custom_component.test_util.aiohttp import (
+        AiohttpClientMocker,
+    )
 
 _SINGLE_RESULT = """
 {"0": {"StreetAddressID": 1, "FullStreetAddress": "110 Montreal Street, Sydenham, Christchurch 8023", "RatingUnitID": 192837}}
@@ -40,14 +39,15 @@ async def _start(hass: HomeAssistant) -> str:
     return result["flow_id"]
 
 
-async def test_single_result_creates_entry(hass: HomeAssistant) -> None:
+async def test_single_result_creates_entry(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
+) -> None:
     """A unique match skips the picker and creates the entry."""
     flow_id = await _start(hass)
-    with aioresponses() as mock:
-        mock.get(SUGGEST_PATTERN, body=_SINGLE_RESULT)
-        result = await hass.config_entries.flow.async_configure(
-            flow_id, {CONF_ADDRESS: "110 Montreal"}
-        )
+    aioclient_mock.get(CCC_SUGGEST_URL, text=_SINGLE_RESULT)
+    result = await hass.config_entries.flow.async_configure(
+        flow_id, {CONF_ADDRESS: "110 Montreal"}
+    )
 
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["data"] == {
@@ -57,14 +57,15 @@ async def test_single_result_creates_entry(hass: HomeAssistant) -> None:
     assert result["result"].unique_id == "192837"
 
 
-async def test_multiple_results_then_select(hass: HomeAssistant) -> None:
+async def test_multiple_results_then_select(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
+) -> None:
     """Several matches show a picker, then create the chosen entry."""
     flow_id = await _start(hass)
-    with aioresponses() as mock:
-        mock.get(SUGGEST_PATTERN, body=load_fixture("suggest.json"))
-        result = await hass.config_entries.flow.async_configure(
-            flow_id, {CONF_ADDRESS: "Montreal"}
-        )
+    aioclient_mock.get(CCC_SUGGEST_URL, text=load_fixture("suggest.json"))
+    result = await hass.config_entries.flow.async_configure(
+        flow_id, {CONF_ADDRESS: "Montreal"}
+    )
 
     assert result["type"] is FlowResultType.FORM
     assert result["step_id"] == "select"
@@ -76,50 +77,55 @@ async def test_multiple_results_then_select(hass: HomeAssistant) -> None:
     assert result["data"][CONF_RATING_UNIT_ID] == 192838
 
 
-async def test_address_not_found(hass: HomeAssistant) -> None:
+async def test_address_not_found(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
+) -> None:
     """An empty lookup reshows the form with an error."""
     flow_id = await _start(hass)
-    with aioresponses() as mock:
-        mock.get(SUGGEST_PATTERN, body="{}")
-        result = await hass.config_entries.flow.async_configure(
-            flow_id, {CONF_ADDRESS: "nowhere"}
-        )
+    aioclient_mock.get(CCC_SUGGEST_URL, text="{}")
+    result = await hass.config_entries.flow.async_configure(
+        flow_id, {CONF_ADDRESS: "nowhere"}
+    )
 
     assert result["type"] is FlowResultType.FORM
     assert result["errors"] == {"base": "address_not_found"}
 
 
-async def test_cannot_connect(hass: HomeAssistant) -> None:
+async def test_cannot_connect(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
+) -> None:
     """A transport error reshows the form with a connection error."""
     flow_id = await _start(hass)
-    with aioresponses() as mock:
-        mock.get(SUGGEST_PATTERN, exception=aiohttp.ClientError("boom"))
-        result = await hass.config_entries.flow.async_configure(
-            flow_id, {CONF_ADDRESS: "110 Montreal"}
-        )
+    aioclient_mock.get(CCC_SUGGEST_URL, exc=aiohttp.ClientError("boom"))
+    result = await hass.config_entries.flow.async_configure(
+        flow_id, {CONF_ADDRESS: "110 Montreal"}
+    )
 
     assert result["type"] is FlowResultType.FORM
     assert result["errors"] == {"base": "cannot_connect"}
 
 
 async def test_duplicate_aborts(
-    hass: HomeAssistant, mock_entry: MockConfigEntry
+    hass: HomeAssistant,
+    mock_entry: MockConfigEntry,
+    aioclient_mock: AiohttpClientMocker,
 ) -> None:
     """A second entry for the same rating unit aborts."""
     mock_entry.add_to_hass(hass)
     flow_id = await _start(hass)
-    with aioresponses() as mock:
-        mock.get(SUGGEST_PATTERN, body=_SINGLE_RESULT)
-        result = await hass.config_entries.flow.async_configure(
-            flow_id, {CONF_ADDRESS: "110 Montreal"}
-        )
+    aioclient_mock.get(CCC_SUGGEST_URL, text=_SINGLE_RESULT)
+    result = await hass.config_entries.flow.async_configure(
+        flow_id, {CONF_ADDRESS: "110 Montreal"}
+    )
 
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "already_configured"
 
 
 async def test_reconfigure_updates_entry(
-    hass: HomeAssistant, mock_entry: MockConfigEntry
+    hass: HomeAssistant,
+    mock_entry: MockConfigEntry,
+    aioclient_mock: AiohttpClientMocker,
 ) -> None:
     """Reconfigure looks up a new address and updates the entry in place."""
     mock_entry.add_to_hass(hass)
@@ -129,11 +135,10 @@ async def test_reconfigure_updates_entry(
     new_result = """
     {"0": {"StreetAddressID": 9, "FullStreetAddress": "200 Colombo Street, Sydenham, Christchurch 8023", "RatingUnitID": 222111}}
     """
-    with aioresponses() as mock:
-        mock.get(SUGGEST_PATTERN, body=new_result)
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], {CONF_ADDRESS: "200 Colombo"}
-        )
+    aioclient_mock.get(CCC_SUGGEST_URL, text=new_result)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_ADDRESS: "200 Colombo"}
+    )
 
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "reconfigure_successful"
@@ -142,7 +147,9 @@ async def test_reconfigure_updates_entry(
 
 
 async def test_reconfigure_to_other_existing_entry_aborts(
-    hass: HomeAssistant, mock_entry: MockConfigEntry
+    hass: HomeAssistant,
+    mock_entry: MockConfigEntry,
+    aioclient_mock: AiohttpClientMocker,
 ) -> None:
     """Reconfiguring onto a property already held by another entry aborts."""
     mock_entry.add_to_hass(hass)
@@ -157,11 +164,10 @@ async def test_reconfigure_to_other_existing_entry_aborts(
     clash = """
     {"0": {"StreetAddressID": 9, "FullStreetAddress": "200 Colombo Street, Sydenham, Christchurch 8023", "RatingUnitID": 222111}}
     """
-    with aioresponses() as mock:
-        mock.get(SUGGEST_PATTERN, body=clash)
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], {CONF_ADDRESS: "200 Colombo"}
-        )
+    aioclient_mock.get(CCC_SUGGEST_URL, text=clash)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_ADDRESS: "200 Colombo"}
+    )
 
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "already_configured"

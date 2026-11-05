@@ -6,7 +6,6 @@ from datetime import date, datetime
 from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
-from aioresponses import aioresponses
 from freezegun import freeze_time
 
 from custom_components.ccc_waste.const import TIMEZONE
@@ -18,6 +17,9 @@ from tests.conftest import mock_ccc_endpoints
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
     from pytest_homeassistant_custom_component.common import MockConfigEntry
+    from pytest_homeassistant_custom_component.test_util.aiohttp import (
+        AiohttpClientMocker,
+    )
 
 FROZEN_NOW = "2026-06-13 00:00:00"
 _AUCKLAND = ZoneInfo(TIMEZONE)
@@ -29,20 +31,23 @@ NEXT = f"sensor.{_DEVICE}_next_collection"
 CALENDAR = f"calendar.{_DEVICE}_collection_calendar"
 
 
-async def _setup(hass: HomeAssistant, entry: MockConfigEntry) -> None:
+async def _setup(
+    hass: HomeAssistant, entry: MockConfigEntry, aioclient_mock: AiohttpClientMocker
+) -> None:
     entry.add_to_hass(hass)
-    with aioresponses() as mock:
-        mock_ccc_endpoints(mock)
-        assert await hass.config_entries.async_setup(entry.entry_id)
-        await hass.async_block_till_done()
+    mock_ccc_endpoints(aioclient_mock)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
 
 
 @freeze_time(FROZEN_NOW)
 async def test_sensor_state_and_attributes(
-    hass: HomeAssistant, mock_entry: MockConfigEntry
+    hass: HomeAssistant,
+    mock_entry: MockConfigEntry,
+    aioclient_mock: AiohttpClientMocker,
 ) -> None:
     """The rubbish sensor reports an Auckland-midnight timestamp and days_until."""
-    await _setup(hass, mock_entry)
+    await _setup(hass, mock_entry, aioclient_mock)
 
     state = hass.states.get(RUBBISH)
     assert state is not None
@@ -58,10 +63,12 @@ async def test_sensor_state_and_attributes(
 
 @freeze_time(FROZEN_NOW)
 async def test_weekly_sensor_rolls_to_nearest(
-    hass: HomeAssistant, mock_entry: MockConfigEntry
+    hass: HomeAssistant,
+    mock_entry: MockConfigEntry,
+    aioclient_mock: AiohttpClientMocker,
 ) -> None:
     """Organic (weekly) rolls to the nearest upcoming Tuesday."""
-    await _setup(hass, mock_entry)
+    await _setup(hass, mock_entry, aioclient_mock)
 
     state = hass.states.get(ORGANIC)
     assert state is not None
@@ -72,10 +79,12 @@ async def test_weekly_sensor_rolls_to_nearest(
 
 @freeze_time(FROZEN_NOW)
 async def test_next_collection_summary(
-    hass: HomeAssistant, mock_entry: MockConfigEntry
+    hass: HomeAssistant,
+    mock_entry: MockConfigEntry,
+    aioclient_mock: AiohttpClientMocker,
 ) -> None:
     """The summary sensor reports the soonest date and every bin sharing it."""
-    await _setup(hass, mock_entry)
+    await _setup(hass, mock_entry, aioclient_mock)
 
     state = hass.states.get(NEXT)
     assert state is not None
@@ -90,10 +99,12 @@ async def test_next_collection_summary(
 
 @freeze_time(FROZEN_NOW)
 async def test_next_collection_groups_same_day(
-    hass: HomeAssistant, mock_entry: MockConfigEntry
+    hass: HomeAssistant,
+    mock_entry: MockConfigEntry,
+    aioclient_mock: AiohttpClientMocker,
 ) -> None:
     """When several bins share the soonest date, all are listed."""
-    await _setup(hass, mock_entry)
+    await _setup(hass, mock_entry, aioclient_mock)
     coordinator = mock_entry.runtime_data
     data = coordinator.data
     coordinator.async_set_updated_data(
@@ -124,10 +135,12 @@ async def test_next_collection_groups_same_day(
 
 @freeze_time(FROZEN_NOW)
 async def test_calendar_event_is_soonest(
-    hass: HomeAssistant, mock_entry: MockConfigEntry
+    hass: HomeAssistant,
+    mock_entry: MockConfigEntry,
+    aioclient_mock: AiohttpClientMocker,
 ) -> None:
     """The calendar's current event is the soonest collection (Organic, 16 Jun)."""
-    await _setup(hass, mock_entry)
+    await _setup(hass, mock_entry, aioclient_mock)
 
     state = hass.states.get(CALENDAR)
     assert state is not None
@@ -136,10 +149,12 @@ async def test_calendar_event_is_soonest(
 
 @freeze_time(FROZEN_NOW)
 async def test_calendar_get_events_projects_window(
-    hass: HomeAssistant, mock_entry: MockConfigEntry
+    hass: HomeAssistant,
+    mock_entry: MockConfigEntry,
+    aioclient_mock: AiohttpClientMocker,
 ) -> None:
     """async_get_events projects each material forward across the window."""
-    await _setup(hass, mock_entry)
+    await _setup(hass, mock_entry, aioclient_mock)
     component = hass.data["calendar"]
     entity = component.get_entity(CALENDAR)
     assert entity is not None
@@ -161,10 +176,12 @@ async def test_calendar_get_events_projects_window(
 
 @freeze_time(FROZEN_NOW)
 async def test_sensor_unavailable_when_material_disappears(
-    hass: HomeAssistant, mock_entry: MockConfigEntry
+    hass: HomeAssistant,
+    mock_entry: MockConfigEntry,
+    aioclient_mock: AiohttpClientMocker,
 ) -> None:
     """A material absent from a later update makes its sensor unavailable."""
-    await _setup(hass, mock_entry)
+    await _setup(hass, mock_entry, aioclient_mock)
     coordinator = mock_entry.runtime_data
     data = coordinator.data
     coordinator.async_set_updated_data(
@@ -185,14 +202,15 @@ async def test_sensor_unavailable_when_material_disappears(
 
 @freeze_time(FROZEN_NOW)
 async def test_calendar_empty_when_no_materials(
-    hass: HomeAssistant, mock_entry: MockConfigEntry
+    hass: HomeAssistant,
+    mock_entry: MockConfigEntry,
+    aioclient_mock: AiohttpClientMocker,
 ) -> None:
     """A property whose rows are all non-kerbside yields no sensors and no event."""
     mock_entry.add_to_hass(hass)
-    with aioresponses() as mock:
-        mock_ccc_endpoints(mock, property_fixture="getProperty_all_excluded.json")
-        assert await hass.config_entries.async_setup(mock_entry.entry_id)
-        await hass.async_block_till_done()
+    mock_ccc_endpoints(aioclient_mock, property_fixture="getProperty_all_excluded.json")
+    assert await hass.config_entries.async_setup(mock_entry.entry_id)
+    await hass.async_block_till_done()
 
     assert hass.states.async_entity_ids("sensor") == []
     state = hass.states.get(CALENDAR)
@@ -203,10 +221,12 @@ async def test_calendar_empty_when_no_materials(
 
 @freeze_time(FROZEN_NOW)
 async def test_sensor_properties_none_for_absent_material(
-    hass: HomeAssistant, mock_entry: MockConfigEntry
+    hass: HomeAssistant,
+    mock_entry: MockConfigEntry,
+    aioclient_mock: AiohttpClientMocker,
 ) -> None:
     """A sensor whose material is missing reports no value and is unavailable."""
-    await _setup(hass, mock_entry)
+    await _setup(hass, mock_entry, aioclient_mock)
     sensor = CCCBinSensor(mock_entry.runtime_data, "Nonexistent")
 
     assert sensor.native_value is None
@@ -216,14 +236,15 @@ async def test_sensor_properties_none_for_absent_material(
 
 @freeze_time(FROZEN_NOW)
 async def test_next_collection_unavailable_when_empty(
-    hass: HomeAssistant, mock_entry: MockConfigEntry
+    hass: HomeAssistant,
+    mock_entry: MockConfigEntry,
+    aioclient_mock: AiohttpClientMocker,
 ) -> None:
     """With no collections, the summary sensor reports nothing and is unavailable."""
     mock_entry.add_to_hass(hass)
-    with aioresponses() as mock:
-        mock_ccc_endpoints(mock, property_fixture="getProperty_all_excluded.json")
-        assert await hass.config_entries.async_setup(mock_entry.entry_id)
-        await hass.async_block_till_done()
+    mock_ccc_endpoints(aioclient_mock, property_fixture="getProperty_all_excluded.json")
+    assert await hass.config_entries.async_setup(mock_entry.entry_id)
+    await hass.async_block_till_done()
 
     sensor = CCCNextCollectionSensor(mock_entry.runtime_data)
     assert sensor._soonest == []

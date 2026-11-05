@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-import re
 from typing import TYPE_CHECKING, Any
 
 import pytest
@@ -18,11 +17,11 @@ from custom_components.ccc_waste.const import (
 )
 
 if TYPE_CHECKING:
-    from aioresponses import aioresponses
+    from pytest_homeassistant_custom_component.test_util.aiohttp import (
+        AiohttpClientMocker,
+    )
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures"
-
-PROPERTY_PATTERN = re.compile(rf"{re.escape(CCC_PROPERTY_URL)}\?.*")
 
 ALLPRESS_ADDRESS = "110 Montreal Street, Sydenham, Christchurch 8023"
 ALLPRESS_RATING_UNIT_ID = 192837
@@ -39,15 +38,15 @@ def load_json_fixture(name: str) -> Any:
 
 
 def mock_ccc_endpoints(
-    mock: aioresponses,
+    aioclient_mock: AiohttpClientMocker,
     *,
     property_fixture: str = "getProperty.json",
     overrides_fixture: str | None = "overrides.json",
 ) -> None:
-    """Serve the property and overrides endpoints from fixtures (repeatably)."""
-    mock.get(PROPERTY_PATTERN, body=load_fixture(property_fixture), repeat=True)
+    """Serve the property and overrides endpoints from fixtures."""
+    aioclient_mock.get(CCC_PROPERTY_URL, text=load_fixture(property_fixture))
     if overrides_fixture is not None:
-        mock.get(CCC_OVERRIDES_URL, body=load_fixture(overrides_fixture), repeat=True)
+        aioclient_mock.get(CCC_OVERRIDES_URL, text=load_fixture(overrides_fixture))
 
 
 @pytest.fixture(autouse=True)

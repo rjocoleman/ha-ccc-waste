@@ -3,11 +3,9 @@
 from __future__ import annotations
 
 from datetime import date
-import re
 from typing import TYPE_CHECKING
 
 import aiohttp
-from aioresponses import aioresponses
 from freezegun import freeze_time
 from homeassistant.exceptions import ConfigEntryError
 from homeassistant.helpers.update_coordinator import UpdateFailed
@@ -28,8 +26,9 @@ from tests.conftest import load_fixture
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
-
-PROPERTY_PATTERN = re.compile(rf"{re.escape(CCC_PROPERTY_URL)}\?.*")
+    from pytest_homeassistant_custom_component.test_util.aiohttp import (
+        AiohttpClientMocker,
+    )
 
 FROZEN_NOW = "2026-06-13 00:00:00"
 
@@ -49,13 +48,14 @@ def _coordinator(hass: HomeAssistant) -> CCCCoordinator:
 
 
 @freeze_time(FROZEN_NOW)
-async def test_update_happy_path(hass: HomeAssistant) -> None:
+async def test_update_happy_path(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
+) -> None:
     """A successful fetch computes per-material results in Auckland time."""
     coordinator = _coordinator(hass)
-    with aioresponses() as mock:
-        mock.get(PROPERTY_PATTERN, body=load_fixture("getProperty.json"))
-        mock.get(CCC_OVERRIDES_URL, body=load_fixture("overrides.json"))
-        data = await coordinator._async_update_data()
+    aioclient_mock.get(CCC_PROPERTY_URL, text=load_fixture("getProperty.json"))
+    aioclient_mock.get(CCC_OVERRIDES_URL, text=load_fixture("overrides.json"))
+    data = await coordinator._async_update_data()
 
     assert set(data.collections) == {"Garbage", "Recycle", "Organic"}
     assert data.collections["Garbage"].next_date == date(2026, 6, 23)
@@ -65,44 +65,52 @@ async def test_update_happy_path(hass: HomeAssistant) -> None:
 
 
 @freeze_time(FROZEN_NOW)
-async def test_overrides_soft_fail(hass: HomeAssistant) -> None:
+async def test_overrides_soft_fail(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
+) -> None:
     """If the overrides feed fails, dates are still produced unadjusted."""
     coordinator = _coordinator(hass)
-    with aioresponses() as mock:
-        mock.get(PROPERTY_PATTERN, body=load_fixture("getProperty.json"))
-        mock.get(CCC_OVERRIDES_URL, exception=aiohttp.ClientError("boom"))
-        data = await coordinator._async_update_data()
+    aioclient_mock.get(CCC_PROPERTY_URL, text=load_fixture("getProperty.json"))
+    aioclient_mock.get(CCC_OVERRIDES_URL, exc=aiohttp.ClientError("boom"))
+    data = await coordinator._async_update_data()
 
     assert data.collections["Garbage"].next_date == date(2026, 6, 23)
     assert all(not c.temporary_change for c in data.collections.values())
 
 
 @freeze_time(FROZEN_NOW)
-async def test_connection_error_raises_update_failed(hass: HomeAssistant) -> None:
+async def test_connection_error_raises_update_failed(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
+) -> None:
     """A property fetch transport error becomes UpdateFailed (transient)."""
     coordinator = _coordinator(hass)
-    with aioresponses() as mock:
-        mock.get(PROPERTY_PATTERN, exception=aiohttp.ClientError("boom"))
-        with pytest.raises(UpdateFailed):
-            await coordinator._async_update_data()
+    aioclient_mock.get(CCC_PROPERTY_URL, exc=aiohttp.ClientError("boom"))
+    with pytest.raises(UpdateFailed):
+        await coordinator._async_update_data()
 
 
 @freeze_time(FROZEN_NOW)
-async def test_no_kerbside_raises_config_entry_error(hass: HomeAssistant) -> None:
+async def test_no_kerbside_raises_config_entry_error(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
+) -> None:
     """A property with no kerbside collection is a permanent config error."""
     coordinator = _coordinator(hass)
-    with aioresponses() as mock:
-        mock.get(PROPERTY_PATTERN, body=load_fixture("getProperty_no_kerbside.json"))
-        with pytest.raises(ConfigEntryError):
-            await coordinator._async_update_data()
+    aioclient_mock.get(
+        CCC_PROPERTY_URL, text=load_fixture("getProperty_no_kerbside.json")
+    )
+    with pytest.raises(ConfigEntryError):
+        await coordinator._async_update_data()
 
 
 @freeze_time(FROZEN_NOW)
-async def test_parse_error_raises_update_failed(hass: HomeAssistant) -> None:
+async def test_parse_error_raises_update_failed(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
+) -> None:
     """A malformed property payload becomes UpdateFailed."""
     coordinator = _coordinator(hass)
-    with aioresponses() as mock:
-        mock.get(PROPERTY_PATTERN, body=load_fixture("getProperty_malformed.json"))
-        mock.get(CCC_OVERRIDES_URL, body=load_fixture("overrides.json"))
-        with pytest.raises(UpdateFailed):
-            await coordinator._async_update_data()
+    aioclient_mock.get(
+        CCC_PROPERTY_URL, text=load_fixture("getProperty_malformed.json")
+    )
+    aioclient_mock.get(CCC_OVERRIDES_URL, text=load_fixture("overrides.json"))
+    with pytest.raises(UpdateFailed):
+        await coordinator._async_update_data()
