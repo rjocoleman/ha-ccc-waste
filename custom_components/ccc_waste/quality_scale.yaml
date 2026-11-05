@@ -7,11 +7,8 @@ rules:
     comment: The integration registers no custom services.
   appropriate-polling: done
   brands:
-    status: exempt
-    comment: >-
-      Distributed as a HACS custom repository, not the HACS default store, so a
-      home-assistant/brands submission is not required. Brand images are shipped
-      locally under brand/ (supported from HA 2026.3) and override the CDN.
+    status: done
+    comment: Brand images ship locally under brand/ (read by HA 2026.3 and later).
   common-modules: done
   config-flow-test-coverage: done
   config-flow: done

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from aioresponses import aioresponses
 from freezegun import freeze_time
 
 from custom_components.ccc_waste.const import CONF_ADDRESS, CONF_RATING_UNIT_ID
@@ -16,20 +15,24 @@ from tests.conftest import mock_ccc_endpoints
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
     from pytest_homeassistant_custom_component.common import MockConfigEntry
+    from pytest_homeassistant_custom_component.test_util.aiohttp import (
+        AiohttpClientMocker,
+    )
 
 FROZEN_NOW = "2026-06-13 00:00:00"
 
 
 @freeze_time(FROZEN_NOW)
 async def test_diagnostics_redacts_personal_data(
-    hass: HomeAssistant, mock_entry: MockConfigEntry
+    hass: HomeAssistant,
+    mock_entry: MockConfigEntry,
+    aioclient_mock: AiohttpClientMocker,
 ) -> None:
     """Address, rating unit and coordinates are redacted; schedule is kept."""
     mock_entry.add_to_hass(hass)
-    with aioresponses() as mock:
-        mock_ccc_endpoints(mock)
-        assert await hass.config_entries.async_setup(mock_entry.entry_id)
-        await hass.async_block_till_done()
+    mock_ccc_endpoints(aioclient_mock)
+    assert await hass.config_entries.async_setup(mock_entry.entry_id)
+    await hass.async_block_till_done()
 
     diagnostics = await async_get_config_entry_diagnostics(hass, mock_entry)
 

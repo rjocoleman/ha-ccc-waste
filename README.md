@@ -26,13 +26,31 @@ This integration only supports Christchurch. That is the point. It is small, foc
 - A **Next collection** sensor: the soonest date across all bins, with a `bins` attribute listing which ones go out that day. Handy for a single at-a-glance card.
 - A **Collection calendar** entity listing upcoming collections as all-day events, for native calendar triggers and the calendar dashboard. Like every Home Assistant calendar, its own state is just `on`/`off` (on only while a collection event is active), so use the sensors above for at-a-glance display.
 
-## Installing through HACS
+## Installing
 
-This is a custom repository. The quickest way is the button below, which opens HACS on your Home Assistant with this repo pre-filled:
+This is a custom repository. It needs Home Assistant 2026.5.1 or later.
+
+### Home Assistant 2026.11 and later (Marketplace)
+
+The quickest way is the button below, which opens this repository in the Marketplace on your Home Assistant:
+
+[![Open your Home Assistant instance and open a repository inside the Marketplace.](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=rjocoleman&repository=ha-ccc-waste&category=integration)
+
+Then select **Install**.
+
+Or add it by hand:
+
+1. Go to **Settings -> Marketplace**.
+2. Select **Add from link** in the upper-right corner.
+3. Enter `https://github.com/rjocoleman/ha-ccc-waste` and select **Add**. If you haven't connected GitHub yet, the Marketplace asks you to.
+4. On the repository page, select **Install**, check the version, and select **Install** again.
+5. Restart Home Assistant if the Marketplace asks you to.
+
+If you installed this through HACS before 2026.11, the Marketplace takes it over when you update Home Assistant. You don't need to reinstall.
+
+### Home Assistant 2026.5 to 2026.10 (HACS)
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=rjocoleman&repository=ha-ccc-waste&category=integration)
-
-Then download it and restart Home Assistant.
 
 Or add it by hand:
 
@@ -57,7 +75,7 @@ Open the integration, choose **Reconfigure**, and look up a new address. No need
 
 ## Dashboard with Mushroom
 
-The sensors work with any standard entity card. For nicer chips, [Mushroom](https://github.com/piitaya/lovelace-mushroom) is a good fit. Install it separately through HACS.
+The sensors work with any standard entity card. For nicer chips, [Mushroom](https://github.com/piitaya/lovelace-mushroom) is a good fit. Install it separately through the Marketplace (or HACS before 2026.11).
 
 Your entity IDs depend on your address. Check them under **Developer tools -> States** (they look like `sensor.<your_address>_rubbish`). Swap them into the examples below.
 
@@ -140,7 +158,9 @@ actions:
 
 ## Removing it
 
-Go to **Settings -> Devices & services**, open the integration, and delete the entry. The device and its entities are removed with it. You can then remove it from HACS.
+Go to **Settings -> Devices & services**, open the integration, and delete the entry. The device and its entities are removed with it.
+
+Then remove the files. In the Marketplace, open the repository page, select the three-dot menu, then **Uninstall**. **Delete and uninstall** does both steps at once. Before 2026.11, remove it from HACS instead.
 
 ## Troubleshooting
 

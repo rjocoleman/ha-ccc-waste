@@ -5,6 +5,7 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
@@ -48,8 +49,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - ha: "2026.6.3"
-            phacc: "0.13.339"
+          - ha: "2026.10.4"
+            phacc: "0.13.375"
           - ha: "2026.5.1"
             phacc: "0.13.330"
     steps:
@@ -72,6 +73,18 @@ jobs:
       - run: >-
           uv run --no-sync coverage report
           --include="*/api.py,*/coordinator.py,*/schedule.py" --fail-under=95
+
+  # A fixed name for branch protection to require, since the matrix job names
+  # change with each HA version.
+  tests:
+    name: Tests
+    if: always()
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          RESULT: ${{ needs.test.result }}
+        run: test "$RESULT" = success
 
   zizmor:
     name: zizmor
